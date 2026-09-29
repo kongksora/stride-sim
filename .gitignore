@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Runtime artifacts and secrets (these belong in ~/.cache/stride-sim, never here)
+*.log
+*.token
+wechat_token
+mitm.log
+.env
+.env.*
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# opencode local installs (keep the skills, drop the dependency tree)
+.opencode/node_modules/
+.opencode/package.json
+.opencode/package-lock.json
+.opencode/.gitignore
