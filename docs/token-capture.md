@@ -116,6 +116,38 @@ ss -tnp | grep WeChatAppEx | grep 8899
 If nothing appears, the env proxy was not honored: confirm WeChat was fully
 restarted (not just the mini program) and that the env vars were exported.
 
+Watch the destination port, not just the presence of connections. XWeb/Chromium
+prefers `ALL_PROXY`/`all_proxy` over `http_proxy`/`https_proxy`, and Clash-style
+tooling exports a session-wide `all_proxy=socks5://127.0.0.1:7897`. If that leaks
+into the launch environment, WeChatAppEx talks SOCKS to Clash (7897) and never
+reaches mitmproxy:
+
+```bash
+ss -tnp | grep WeChatAppEx            # expect 127.0.0.1:8899, not :7897
+```
+
+Guard against it in the throwaway launcher by clearing the SOCKS vars:
+
+```bash
+exec env -u all_proxy -u ALL_PROXY \
+    http_proxy=http://127.0.0.1:8899 https_proxy=http://127.0.0.1:8899 \
+    HTTP_PROXY=http://127.0.0.1:8899 HTTPS_PROXY=http://127.0.0.1:8899 \
+    no_proxy=localhost,127.0.0.1,::1 NO_PROXY=localhost,127.0.0.1,::1 \
+    /opt/wechat/wechat "$@"
+```
+
+Belt-and-suspenders: XWeb also honors the GNOME system proxy, so temporarily
+point it at the capture port and restore it afterwards (Hygiene step):
+
+```bash
+gsettings set org.gnome.system.proxy.http  port 8899
+gsettings set org.gnome.system.proxy.https port 8899
+gsettings set org.gnome.system.proxy.socks port 8899
+```
+
+Do not use `pkill -f /opt/wechat`: the pattern matches the invoking shell's own
+command line and kills the session. Use `pkill -x wechat` (and `-x WeChatAppEx`).
+
 ## Windows notes
 
 Windows WeChat uses WMPF; there is no known env-proxy path. Options are
