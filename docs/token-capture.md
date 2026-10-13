@@ -164,6 +164,11 @@ machines or accounts: `loginName` and the request `sign` must match the token.
   expired token and warns when less than 6 hours remain.
 - After a token re-capture, no other cleanup is needed; the token file is
   overwritten in place.
+- After the capture, do **not** restart WeChat. Restoring the GNOME system
+  proxy (cleanup step) is enough: the already-running instance re-reads it live
+  and resumes using the normal proxy, and its login is untouched. Killing and
+  relaunching WeChat is only needed at the *start* of a capture, to launch it
+  with the proxy env set.
 
 ## Operating notes (learned the hard way)
 
